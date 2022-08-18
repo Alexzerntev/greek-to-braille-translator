@@ -374,13 +374,36 @@ export const App = () => {
 
   const onGreekChange = useCallback((value: string) => {
     const greekArr = Array.from(value);
-    const brilleArr = greekArr.map(c => {
-      if (!isLowerCase(c)) {
-        return "⠨" + alphagbet.find(g => g.character === c.toLocaleLowerCase())?.braille
+    let skip = false;
+    const brilleArr: string[] = [];
+
+    greekArr.forEach((c, idx) => {
+      if (skip) {
+        skip = false;
       }
-      return alphagbet.find(g => g.character === c)?.braille;
-    })
-    setBrilleText(brilleArr.join(""))
+      else {
+        if (c.toLocaleLowerCase() === "α" || c.toLocaleLowerCase() === "ε" || c.toLocaleLowerCase() === "ο" || c.toLocaleLowerCase() === "υ" || c.toLocaleLowerCase() === "η") {
+          if (idx !== greekArr.length - 1) {
+            const res = alphagbet.find(g => g.character === (c.toLocaleLowerCase() + greekArr[idx + 1]))?.braille;
+            if (res) {
+              skip = true;
+              brilleArr.push(res);
+              return;
+            }
+          }
+        }
+        if (!isLowerCase(c)) {
+          brilleArr.push("⠨" + alphagbet.find(g => g.character === c.toLocaleLowerCase())?.braille);
+          return;
+        }
+        const res = alphagbet.find(g => g.character === c)?.braille;
+        if (res) {
+          brilleArr.push(res);
+          return;
+        }
+      }
+    });
+    setBrilleText(brilleArr.join("|"))
   }, [])
 
   return (
